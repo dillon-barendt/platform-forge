@@ -7,9 +7,18 @@ architectures.
 uvx platform-forge new gateway
 ```
 
-The AI integration is optional and only produces validated configuration. Source
-files are generated from local Cookiecutter templates and remain maintainable
-without Platform Forge after generation.
+Platform Forge is not a generic AI code generator. It captures proven platform
+architecture patterns and emits deterministic repositories from validated
+Pydantic configuration.
+
+The optional AI integration is only an architectural translator: it can map a
+developer's domain description into `GatewayScaffoldConfig`, but it never
+generates application source code or business logic. If AI is not installed or
+configured, the CLI falls back to manual flags and interactive prompts.
+
+Generated projects are portable. Their root `Makefile` is the canonical local
+interface for install, dev, test, lint, format, typecheck, Redis, and doctor
+workflows, so the scaffold remains maintainable without Platform Forge.
 
 ## Development
 

@@ -22,6 +22,18 @@ def test_parser_uses_injected_agent() -> None:
     assert config.workspace.project_slug == "ticket-platform"
 
 
+def test_parser_includes_baseline_when_provided() -> None:
+    baseline = GatewayScaffoldConfig(
+        workspace=WorkspaceConfig(project_name="Baseline Platform", domain="ticketing")
+    )
+    config = DomainConfigParser(agent=FakeAgent()).parse(
+        "Build a tickets platform",
+        baseline=baseline,
+    )
+
+    assert config.workspace.project_slug == "ticket-platform"
+
+
 def test_parser_requires_agent_or_model() -> None:
     with pytest.raises(AIUnavailableError):
         DomainConfigParser().parse("Build a tickets platform")

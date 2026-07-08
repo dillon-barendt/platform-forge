@@ -25,6 +25,7 @@ def test_gateway_context_is_deterministic() -> None:
     context = config.to_cookiecutter_context()
 
     assert context["project_slug"] == "ticket-platform"
+    assert context["scaffold_config"]["workspace"]["project_slug"] == "ticket-platform"
     assert context["gateway_package"] == "ticket_platform_gateway"
     assert context["providers"] == [
         {"name": "ticketmaster", "display_name": "Ticketmaster"},

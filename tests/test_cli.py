@@ -73,3 +73,20 @@ def test_non_ai_fallback_uses_defaults() -> None:
 
     assert config.workspace.project_slug == "gateway-platform"
     assert config.providers[0].name == "example-provider"
+
+
+def test_ai_mode_falls_back_to_manual_config_without_provider() -> None:
+    config = build_gateway_config(
+        project_name="Ticket Platform",
+        domain="ticketing",
+        providers="ticketmaster",
+        services="pricing",
+        frontend="vite",
+        event_bus="redis",
+        observability="logfire",
+        interactive=False,
+        from_description="Build a marketplace for ticket inventory.",
+    )
+
+    assert config.workspace.project_slug == "ticket-platform"
+    assert config.providers[0].name == "ticketmaster"

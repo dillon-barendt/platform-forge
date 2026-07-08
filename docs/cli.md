@@ -19,3 +19,14 @@ platform-forge new gateway \
   --event-bus redis \
   --observability logfire
 ```
+
+AI-assisted mode is optional:
+
+```bash
+platform-forge new gateway \
+  --interactive \
+  --from-description "Build a ticketing platform with provider inventory adapters"
+```
+
+When AI is not configured, Platform Forge uses the manual configuration gathered
+from flags or prompts.

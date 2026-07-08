@@ -21,6 +21,9 @@ make dev
 
 Configuration ownership:
 
-- Root `.env`: shared infrastructure
+- Root `.env`: shared local infrastructure only
 - `apps/gateway/.env`: backend runtime configuration
 - `apps/web/.env.local`: browser-safe frontend configuration
+
+The root `Makefile` is the canonical local command interface. It orchestrates
+tools, but runtime configuration is owned by each application.

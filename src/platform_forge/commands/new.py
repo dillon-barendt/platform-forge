@@ -7,6 +7,7 @@ from pathlib import Path
 import typer
 
 from platform_forge.ai import DomainConfigParser
+from platform_forge.ai.agent import AIUnavailableError
 from platform_forge.config.models import GatewayScaffoldConfig
 from platform_forge.config.parser import build_gateway_config_from_cli
 from platform_forge.config.settings import ForgeSettings
@@ -28,12 +29,8 @@ def build_gateway_config(
     from_description: str | None,
 ) -> GatewayScaffoldConfig:
     """Build a validated gateway config from CLI flags or prompts."""
-    if from_description:
-        settings = ForgeSettings()
-        return DomainConfigParser(model=settings.ai_model).parse(from_description)
-
     try:
-        return build_gateway_config_from_cli(
+        baseline = build_gateway_config_from_cli(
             project_name=project_name,
             domain=domain,
             providers=providers,
@@ -45,6 +42,20 @@ def build_gateway_config(
         )
     except ConfigurationError as exc:
         raise typer.BadParameter(str(exc)) from exc
+
+    if not from_description:
+        return baseline
+
+    settings = ForgeSettings()
+    try:
+        return DomainConfigParser(model=settings.ai_model).parse(
+            from_description, baseline=baseline
+        )
+    except AIUnavailableError:
+        console.print(
+            "[yellow]AI configuration parsing is unavailable; using manual scaffold config.[/]"
+        )
+        return baseline
 
 
 def create_gateway(

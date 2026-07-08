@@ -47,7 +47,11 @@ class DomainConfigParser:
         self._agent = agent
         self._model = model
 
-    def parse(self, description: str) -> GatewayScaffoldConfig:
+    def parse(
+        self,
+        description: str,
+        baseline: GatewayScaffoldConfig | None = None,
+    ) -> GatewayScaffoldConfig:
         if not description.strip():
             msg = "description must not be empty"
             raise ValueError(msg)
@@ -59,7 +63,16 @@ class DomainConfigParser:
                 raise AIUnavailableError(msg)
             agent = create_pydantic_ai_agent(self._model)
 
-        result: Any = agent.run_sync(description)
+        user_prompt = description
+        if baseline is not None:
+            user_prompt = (
+                "Use this baseline validated configuration as the starting point. "
+                "Only adjust structural scaffold fields that are supported by the schema.\n\n"
+                f"Baseline JSON:\n{baseline.model_dump_json(indent=2)}\n\n"
+                f"Developer description:\n{description}"
+            )
+
+        result: Any = agent.run_sync(user_prompt)
         output = result.output
         if isinstance(output, GatewayScaffoldConfig):
             return output

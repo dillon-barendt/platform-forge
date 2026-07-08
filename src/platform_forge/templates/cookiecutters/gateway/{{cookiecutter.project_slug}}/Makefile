@@ -1,21 +1,35 @@
 .PHONY: install dev dev-gateway dev-web redis test lint format typecheck doctor
 
+-include .env
+
+PYTHON_SYNC := uv sync --all-packages
+PNPM_INSTALL := pnpm install --config.dangerouslyAllowAllBuilds=true
+
 install:
-	uv sync --all-packages --all-extras --all-groups
+	$(PYTHON_SYNC)
 {% if cookiecutter.frontend_enabled %}
-	@if command -v pnpm >/dev/null 2>&1; then cd apps/web && pnpm install --config.dangerouslyAllowAllBuilds=true; else echo "pnpm not found; skipping web install"; fi
+	@if command -v pnpm >/dev/null 2>&1; then $(PNPM_INSTALL); else echo "pnpm not found; skipping web install"; fi
 {% endif %}
 
 dev:
 	$(MAKE) redis
-	$(MAKE) dev-gateway
+	$(PYTHON_SYNC)
+{% if cookiecutter.frontend_enabled %}
+	$(PNPM_INSTALL)
+	uv run --all-packages fastapi dev apps/gateway/src/{{ cookiecutter.gateway_package }}/main.py & \
+	GATEWAY_PID=$$!; \
+	trap 'kill $$GATEWAY_PID' INT TERM EXIT; \
+	pnpm --filter web run dev
+{% else %}
+	uv run --all-packages fastapi dev apps/gateway/src/{{ cookiecutter.gateway_package }}/main.py
+{% endif %}
 
 dev-gateway:
 	uv run --all-packages fastapi dev apps/gateway/src/{{ cookiecutter.gateway_package }}/main.py
 
 dev-web:
 {% if cookiecutter.frontend_enabled %}
-	cd apps/web && pnpm dev
+	pnpm --filter web run dev
 {% else %}
 	@echo "No frontend scaffold was generated."
 {% endif %}

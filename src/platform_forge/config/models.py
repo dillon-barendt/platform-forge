@@ -177,7 +177,9 @@ class GatewayScaffoldConfig(ForgeBaseModel):
             msg = "workspace names were not derived"
             raise ValueError(msg)
 
+        model_dump = self.model_dump(mode="json")
         return {
+            "scaffold_config": model_dump,
             "project_name": self.workspace.project_name,
             "project_slug": project_slug,
             "package_name": package_name,

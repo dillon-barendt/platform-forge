@@ -18,3 +18,7 @@ Generated projects use layered runtime configuration:
 - app-local `.env` files for runtime ownership
 - Pydantic Settings for validation and defaults
 - Makefile targets for orchestration
+
+The Makefile may include the root `.env` for local Make variables, but it is not
+the runtime configuration authority and does not blindly inject root environment
+values into applications.

@@ -1,0 +1,13 @@
+site_name: Platform Forge
+site_description: Deterministic scaffolding for modern Python platform architectures.
+theme:
+  name: material
+nav:
+  - Getting Started: index.md
+  - Architecture: architecture.md
+  - CLI Reference: cli.md
+  - Configuration Reference: configuration.md
+  - Template System: templates.md
+  - AI Integration: ai.md
+  - Development Guide: development.md
+  - Contributing Guide: contributing.md

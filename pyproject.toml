@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling>=1.25"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.11.28,<0.12"]
+build-backend = "uv_build"
 
 [project]
 name = "platform-forge"
@@ -10,33 +10,33 @@ readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
 authors = [
-  { name = "Platform Forge Contributors" },
+    { name = "Platform Forge Contributors" },
 ]
 keywords = ["scaffolding", "cookiecutter", "platform-engineering", "fastapi", "typer"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
-  "Environment :: Console",
-  "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.13",
-  "Topic :: Software Development :: Code Generators",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Code Generators",
 ]
 dependencies = [
-  "cookiecutter>=2.6.0",
-  "pydantic>=2.10.0",
-  "pydantic-settings>=2.7.0",
-  "rich>=13.9.0",
-  "typer>=0.15.0",
+    "cookiecutter>=2.6.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.7.0",
+    "rich>=13.9.0",
+    "typer>=0.15.0",
 ]
 
 [project.optional-dependencies]
 ai = ["pydantic-ai>=1.0.0"]
 docs = ["mkdocs>=1.6.0", "mkdocs-material>=9.5.0"]
 dev = [
-  "mypy>=1.14.0",
-  "pytest>=8.3.0",
-  "pytest-cov>=6.0.0",
-  "ruff>=0.8.0",
+    "mypy>=1.14.0",
+    "pytest>=8.3.0",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.8.0",
 ]
 
 [project.scripts]
@@ -46,19 +46,6 @@ platform-forge = "platform_forge.cli:app"
 Documentation = "https://github.com/platform-forge/platform-forge#readme"
 Issues = "https://github.com/platform-forge/platform-forge/issues"
 Source = "https://github.com/platform-forge/platform-forge"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/platform_forge"]
-
-[tool.hatch.build.targets.sdist]
-include = [
-  "docs",
-  "mkdocs.yml",
-  "pyproject.toml",
-  "README.md",
-  "src/platform_forge",
-  "tests",
-]
 
 [tool.ruff]
 line-length = 100
@@ -78,3 +65,17 @@ packages = ["platform_forge"]
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.2.0",
+    "pytest>=9.1.1",
+    "ruff>=0.15.21",
+]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-git-revision-date-localized-plugin>=1.5.3",
+    "mkdocs-material>=9.7.6",
+    "mkdocs-mermaid2-plugin>=1.2.3",
+    "mkdocs-minify-plugin>=0.8.0",
+]

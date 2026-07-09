@@ -1,13 +1,151 @@
 site_name: Platform Forge
 site_description: Deterministic scaffolding for modern Python platform architectures.
+site_url: https://dillon-barendt.github.io/platform-forge/
+repo_name: dillon-barendt/platform-forge
+repo_url: https://github.com/dillon-barendt/platform-forge
+edit_uri: edit/development/docs/
+
 theme:
   name: material
+  language: en
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.path
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/factory
+  font:
+    text: Inter
+    code: JetBrains Mono
+
+plugins:
+  - search
+  - mermaid2:
+      version: 11.4.1
+      arguments:
+        theme: base
+        securityLevel: loose
+        flowchart:
+          curve: basis
+        sequence:
+          mirrorActors: false
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      title: On this page
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.snippets:
+      base_path:
+        - docs
+        - .
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/dillon-barendt/platform-forge
+      name: Platform Forge on GitHub
+  status:
+    new: Recently added
+    deprecated: Deprecated
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+extra_javascript:
+  - assets/javascripts/extra.js
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+
 nav:
-  - Getting Started: index.md
-  - Architecture: architecture.md
-  - CLI Reference: cli.md
-  - Configuration Reference: configuration.md
-  - Template System: templates.md
-  - AI Integration: ai.md
-  - Development Guide: development.md
-  - Contributing Guide: contributing.md
+  - Overview:
+      - Getting Started: index.md
+      - Architecture: architecture.md
+      - Roadmap: roadmap.md
+  - User Guide:
+      - CLI Reference: cli.md
+      - Configuration Reference: configuration.md
+      - Template System: templates.md
+      - AI Integration: ai.md
+  - Engineering:
+      - Development Guide: development.md
+      - Contributing Guide: contributing.md
+      - Architecture Decision Records:
+          - ADR Index: adr/index.md
+  - Operations:
+      - Release Process: releases.md
+      - Changelog: changelog.md

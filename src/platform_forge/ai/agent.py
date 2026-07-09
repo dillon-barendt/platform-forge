@@ -26,10 +26,13 @@ class SyncConfigAgent(Protocol):
     def run_sync(self, user_prompt: str) -> SyncRunResult[GatewayScaffoldConfig]: ...
 
 
-def create_pydantic_ai_agent(model: str) -> SyncConfigAgent:
+def create_pydantic_ai_agent(model: str | None) -> SyncConfigAgent:
     """Create a Pydantic AI agent that returns GatewayScaffoldConfig."""
+    if model is None:
+        msg = "AI parsing requires a configured model."
+        raise AIUnavailableError(msg)
     try:
-        from pydantic_ai import Agent  # type: ignore[import-not-found]
+        from pydantic_ai import Agent
     except ImportError as exc:
         msg = "Install platform-forge[ai] to enable AI-assisted configuration parsing."
         raise AIUnavailableError(msg) from exc
@@ -56,12 +59,7 @@ class DomainConfigParser:
             msg = "description must not be empty"
             raise ValueError(msg)
 
-        agent = self._agent
-        if agent is None:
-            if self._model is None:
-                msg = "AI parsing requires a configured model or injected agent."
-                raise AIUnavailableError(msg)
-            agent = create_pydantic_ai_agent(self._model)
+        agent = self._agent or create_pydantic_ai_agent(self._model)
 
         user_prompt = description
         if baseline is not None:

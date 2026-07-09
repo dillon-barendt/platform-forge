@@ -8,9 +8,7 @@ def split_csv(value: str | Iterable[str] | None) -> list[str]:
     if value is None:
         return []
     if isinstance(value, str):
-        raw_items = value.split(",")
+        items = value.split(",")
     else:
-        raw_items = []
-        for item in value:
-            raw_items.extend(item.split(","))
-    return [item.strip() for item in raw_items if item.strip()]
+        items = [item for s in value for item in s.split(",")]
+    return [item.strip() for item in items if item.strip()]

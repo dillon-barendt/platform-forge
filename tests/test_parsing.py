@@ -1,4 +1,4 @@
-from platform_forge.utils.paths import split_csv
+from platform_forge.utils.strings import split_csv
 
 
 def test_split_csv_ignores_empty_items() -> None:

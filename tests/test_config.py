@@ -3,7 +3,7 @@ from pydantic import ValidationError
 
 from platform_forge.core.config import ForgeSettings
 from platform_forge.core.models import EventBusConfig, GatewayScaffoldConfig, WorkspaceConfig
-from platform_forge.core.parser import build_gateway_config_from_cli
+from platform_forge.utils.parser import build_gateway_config_from_cli
 
 
 def test_workspace_derives_slug_and_package_name() -> None:

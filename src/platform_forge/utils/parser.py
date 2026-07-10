@@ -6,15 +6,12 @@ from typing import cast
 
 import typer
 
-from platform_forge.core.config import ForgeSettings
+from platform_forge.core.config import ForgeSettings, FrontendFramework, EventBusProvider, ObservabilityProvider
 from platform_forge.core.errors import ConfigurationError
 from platform_forge.core.models import (
-    EventBusProvider,
-    FrontendFramework,
     GatewayScaffoldConfig,
-    ObservabilityProvider,
 )
-from platform_forge.utils.paths import split_csv
+from platform_forge.utils.strings import split_csv
 
 
 def _validated_choice(value: str, choices: set[str], option_name: str) -> str:

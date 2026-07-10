@@ -1,4 +1,8 @@
 """Settings for Platform Forge itself."""
+from __future__ import annotations
+
+from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -21,3 +25,17 @@ class ForgeSettings(BaseSettings):
     observability_choices: set[str] = Field(
         default_factory=lambda: {"none", "logfire", "opentelemetry"}
     )
+
+
+@lru_cache()
+def get_settings() -> ForgeSettings:
+    """Get a cached Forge settings instance."""
+    return ForgeSettings()
+
+
+settings = get_settings()
+
+Slug = str
+FrontendFramework = Literal["none", "vite", "nextjs"]
+EventBusProvider = Literal["none", "redis", "nats", "kafka"]
+ObservabilityProvider = Literal["none", "logfire", "opentelemetry"]

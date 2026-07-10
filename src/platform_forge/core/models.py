@@ -2,30 +2,17 @@
 
 from __future__ import annotations
 
-import re
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-Slug = str
-FrontendFramework = Literal["none", "vite", "nextjs"]
-EventBusProvider = Literal["none", "redis", "nats", "kafka"]
-ObservabilityProvider = Literal["none", "logfire", "opentelemetry"]
-
-
-def normalize_slug(value: str) -> str:
-    """Normalize user input into a deterministic lowercase slug."""
-    normalized = re.sub(r"[^a-zA-Z0-9]+", "-", value.strip().lower()).strip("-")
-    normalized = re.sub(r"-+", "-", normalized)
-    if not normalized:
-        msg = "value must contain at least one alphanumeric character"
-        raise ValueError(msg)
-    return normalized
-
-
-def package_name_from_slug(slug: str) -> str:
-    """Convert a filesystem slug into a Python package-safe name."""
-    return slug.replace("-", "_")
+from platform_forge.core.config import (
+    EventBusProvider,
+    FrontendFramework,
+    ObservabilityProvider,
+    Slug,
+)
+from platform_forge.utils.strings import normalize_slug, package_name_from_slug
 
 
 class ForgeBaseModel(BaseModel):

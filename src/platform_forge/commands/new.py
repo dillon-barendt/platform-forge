@@ -10,7 +10,7 @@ from platform_forge.ai import AIUnavailableError, DomainConfigParser
 from platform_forge.core.config import ForgeSettings
 from platform_forge.core.errors import ConfigurationError
 from platform_forge.core.models import GatewayScaffoldConfig
-from platform_forge.core.parser import build_gateway_config_from_cli
+from platform_forge.utils.parser import build_gateway_config_from_cli
 from platform_forge.templates import ScaffoldGenerator
 from platform_forge.utils.console import console
 

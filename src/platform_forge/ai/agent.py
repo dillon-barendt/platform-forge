@@ -32,7 +32,7 @@ def create_pydantic_ai_agent(model: str | None) -> SyncConfigAgent:
         msg = "AI parsing requires a configured model."
         raise AIUnavailableError(msg)
     try:
-        from pydantic_ai import Agent  # type: ignore[import-not-found]
+        from pydantic_ai import Agent
     except ImportError as exc:
         msg = "Install platform-forge[ai] to enable AI-assisted configuration parsing."
         raise AIUnavailableError(msg) from exc

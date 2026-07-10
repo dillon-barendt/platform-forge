@@ -1,6 +1,6 @@
 """Configuration model and parser exports."""
 
-from platform_forge.config.models import (
+from platform_forge.core.models import (
     AuthConfig,
     EventBusConfig,
     FrontendConfig,

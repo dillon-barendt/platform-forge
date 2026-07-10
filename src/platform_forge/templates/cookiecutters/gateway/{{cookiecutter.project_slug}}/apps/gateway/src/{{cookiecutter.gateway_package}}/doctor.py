@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 
-from {{ cookiecutter.gateway_package }}.settings import get_settings
+from {{ cookiecutter.gateway_package }}.config import get_settings
 
 
 def main() -> int:

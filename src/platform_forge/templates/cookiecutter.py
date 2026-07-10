@@ -7,7 +7,7 @@ from typing import Any
 
 from cookiecutter.main import cookiecutter  # type: ignore[import-untyped]
 
-from platform_forge.config.models import GatewayScaffoldConfig
+from platform_forge.core.models import GatewayScaffoldConfig
 from platform_forge.templates.registry import TemplateRegistry
 
 

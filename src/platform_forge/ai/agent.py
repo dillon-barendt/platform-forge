@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Protocol, TypeVar, cast
 
 from platform_forge.ai.prompts import AI_SYSTEM_PROMPT
-from platform_forge.config.models import GatewayScaffoldConfig
+from platform_forge.core.models import GatewayScaffoldConfig
 
 T = TypeVar("T")
 
@@ -32,7 +32,7 @@ def create_pydantic_ai_agent(model: str | None) -> SyncConfigAgent:
         msg = "AI parsing requires a configured model."
         raise AIUnavailableError(msg)
     try:
-        from pydantic_ai import Agent
+        from pydantic_ai import Agent  # type: ignore[import-not-found]
     except ImportError as exc:
         msg = "Install platform-forge[ai] to enable AI-assisted configuration parsing."
         raise AIUnavailableError(msg) from exc
@@ -44,7 +44,7 @@ def create_pydantic_ai_agent(model: str | None) -> SyncConfigAgent:
 
 
 class DomainConfigParser:
-    """Parse natural-language domain descriptions into validated config."""
+    """Parse natural-language domain descriptions into validated core."""
 
     def __init__(self, agent: SyncConfigAgent | None = None, model: str | None = None) -> None:
         self._agent = agent

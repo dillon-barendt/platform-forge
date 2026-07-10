@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 
 from {{ cookiecutter.gateway_package }}.routes import catalog, health
-from {{ cookiecutter.gateway_package }}.settings import get_settings
+from {{ cookiecutter.gateway_package }}.config import get_settings
 
 
 def create_app() -> FastAPI:

@@ -1,7 +1,7 @@
 import pytest
 
 from platform_forge.ai import AIUnavailableError, DomainConfigParser
-from platform_forge.config.models import GatewayScaffoldConfig, WorkspaceConfig
+from platform_forge.core.models import GatewayScaffoldConfig, WorkspaceConfig
 
 
 class FakeResult:

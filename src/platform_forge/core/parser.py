@@ -6,22 +6,14 @@ from typing import cast
 
 import typer
 
-from platform_forge.config.defaults import (
-    DEFAULT_DOMAIN,
-    DEFAULT_PROJECT_NAME,
-    DEFAULT_PROVIDERS,
-    DEFAULT_SERVICES,
-    EVENT_BUS_CHOICES,
-    FRONTEND_CHOICES,
-    OBSERVABILITY_CHOICES,
-)
-from platform_forge.config.models import (
+from platform_forge.core.config import ForgeSettings
+from platform_forge.core.errors import ConfigurationError
+from platform_forge.core.models import (
     EventBusProvider,
     FrontendFramework,
     GatewayScaffoldConfig,
     ObservabilityProvider,
 )
-from platform_forge.utils.errors import ConfigurationError
 from platform_forge.utils.paths import split_csv
 
 
@@ -42,38 +34,43 @@ def build_gateway_config_from_cli(
     event_bus: str,
     observability: str,
     interactive: bool,
+    settings: ForgeSettings | None = None,
 ) -> GatewayScaffoldConfig:
-    """Build a validated gateway config from CLI flags and optional prompts."""
+    """Build a validated gateway core from CLI flags and optional prompts."""
+    forge_settings = settings or ForgeSettings()
+
     if interactive:
-        project_name = project_name or typer.prompt("Project name", default=DEFAULT_PROJECT_NAME)
-        domain = domain or typer.prompt("Domain", default=DEFAULT_DOMAIN)
+        project_name = project_name or typer.prompt(
+            "Project name", default=forge_settings.default_project_name
+        )
+        domain = domain or typer.prompt("Domain", default=forge_settings.default_domain)
         providers = providers or typer.prompt(
             "Providers (comma-separated)",
-            default=",".join(DEFAULT_PROVIDERS),
+            default=",".join(forge_settings.default_providers),
         )
         services = services or typer.prompt(
             "Internal services (comma-separated)",
-            default=",".join(DEFAULT_SERVICES),
+            default=",".join(forge_settings.default_services),
         )
 
-    provider_names = split_csv(providers) or DEFAULT_PROVIDERS
-    service_names = split_csv(services) or DEFAULT_SERVICES
+    provider_names = split_csv(providers) or forge_settings.default_providers
+    service_names = split_csv(services) or forge_settings.default_services
     frontend_choice = cast(
         FrontendFramework,
-        _validated_choice(frontend, FRONTEND_CHOICES, "--frontend"),
+        _validated_choice(frontend, forge_settings.frontend_choices, "--frontend"),
     )
     event_bus_choice = cast(
         EventBusProvider,
-        _validated_choice(event_bus, EVENT_BUS_CHOICES, "--event-bus"),
+        _validated_choice(event_bus, forge_settings.event_bus_choices, "--event-bus"),
     )
     observability_choice = cast(
         ObservabilityProvider,
-        _validated_choice(observability, OBSERVABILITY_CHOICES, "--observability"),
+        _validated_choice(observability, forge_settings.observability_choices, "--observability"),
     )
 
     return GatewayScaffoldConfig.from_cli(
-        project_name=project_name or DEFAULT_PROJECT_NAME,
-        domain=domain or DEFAULT_DOMAIN,
+        project_name=project_name or forge_settings.default_project_name,
+        domain=domain or forge_settings.default_domain,
         providers=provider_names,
         services=service_names,
         frontend=frontend_choice,

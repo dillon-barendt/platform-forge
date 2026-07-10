@@ -6,14 +6,13 @@ from pathlib import Path
 
 import typer
 
-from platform_forge.ai import DomainConfigParser
-from platform_forge.ai.agent import AIUnavailableError
-from platform_forge.config.models import GatewayScaffoldConfig
-from platform_forge.config.parser import build_gateway_config_from_cli
-from platform_forge.config.settings import ForgeSettings
+from platform_forge.ai import AIUnavailableError, DomainConfigParser
+from platform_forge.core.config import ForgeSettings
+from platform_forge.core.errors import ConfigurationError
+from platform_forge.core.models import GatewayScaffoldConfig
+from platform_forge.core.parser import build_gateway_config_from_cli
 from platform_forge.templates import ScaffoldGenerator
 from platform_forge.utils.console import console
-from platform_forge.utils.errors import ConfigurationError
 
 
 def build_gateway_config(

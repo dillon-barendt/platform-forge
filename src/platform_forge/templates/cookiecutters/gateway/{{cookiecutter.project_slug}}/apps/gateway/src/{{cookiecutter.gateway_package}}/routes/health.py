@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 
 from {{ cookiecutter.gateway_package }}.models import HealthResponse
-from {{ cookiecutter.gateway_package }}.settings import get_settings
+from {{ cookiecutter.gateway_package }}.config import get_settings
 
 router = APIRouter(tags=["health"])
 

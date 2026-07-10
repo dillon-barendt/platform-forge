@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from platform_forge.config.models import GatewayScaffoldConfig
+from platform_forge.core.models import GatewayScaffoldConfig
 from platform_forge.templates import ScaffoldGenerator
 
 
@@ -58,7 +58,7 @@ def test_generated_makefile_is_canonical_interface(tmp_path: Path) -> None:
     assert "uv sync --all-packages" in makefile
     assert "docker compose up -d redis" in makefile
     assert "uv run --all-packages fastapi dev" in makefile
-    assert "pnpm install --config.dangerouslyAllowAllBuilds=true" in makefile
+    assert "pnpm install --core.dangerouslyAllowAllBuilds=true" in makefile
     assert "pnpm --filter web run dev" in makefile
 
 
@@ -76,7 +76,7 @@ def test_generated_environment_ownership_is_layered(tmp_path: Path) -> None:
     generated = ScaffoldGenerator().generate_gateway(config, tmp_path)
     root_env = (generated / ".env.example").read_text()
     gateway_env = (generated / "apps/gateway/.env.example").read_text()
-    settings = (generated / "apps/gateway/src/ticket_platform_gateway/settings.py").read_text()
+    settings = (generated / "apps/gateway/src/ticket_platform_gateway/config.py").read_text()
 
     assert "COMPOSE_PROJECT_NAME=ticket-platform" in root_env
     assert "REDIS_URL=redis://localhost:6379/0" in root_env

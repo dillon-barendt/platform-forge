@@ -3,7 +3,7 @@
 -include .env
 
 PYTHON_SYNC := uv sync --all-packages
-PNPM_INSTALL := pnpm install --config.dangerouslyAllowAllBuilds=true
+PNPM_INSTALL := pnpm install --core.dangerouslyAllowAllBuilds=true
 
 install:
 	$(PYTHON_SYNC)

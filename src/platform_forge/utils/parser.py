@@ -6,7 +6,12 @@ from typing import cast
 
 import typer
 
-from platform_forge.core.config import ForgeSettings, FrontendFramework, EventBusProvider, ObservabilityProvider
+from platform_forge.core.config import (
+    EventBusProvider,
+    ForgeSettings,
+    FrontendFramework,
+    ObservabilityProvider,
+)
 from platform_forge.core.errors import ConfigurationError
 from platform_forge.core.models import (
     GatewayScaffoldConfig,

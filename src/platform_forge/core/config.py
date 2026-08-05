@@ -1,4 +1,5 @@
 """Settings for Platform Forge itself."""
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -27,7 +28,7 @@ class ForgeSettings(BaseSettings):
     )
 
 
-@lru_cache()
+@lru_cache
 def get_settings() -> ForgeSettings:
     """Get a cached Forge settings instance."""
     return ForgeSettings()

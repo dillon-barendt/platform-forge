@@ -1,9 +1,9 @@
-"""Utility functions for working with strings.
-"""
+"""Utility functions for working with strings."""
+
 from __future__ import annotations
 
 import re
-from typing import Iterable
+from collections.abc import Iterable
 
 
 def normalize_slug(value: str) -> str:

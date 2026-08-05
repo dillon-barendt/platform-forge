@@ -43,9 +43,9 @@ dev = [
 platform-forge = "platform_forge.cli:app"
 
 [project.urls]
-Documentation = "https://github.com/platform-forge/platform-forge#readme"
-Issues = "https://github.com/platform-forge/platform-forge/issues"
-Source = "https://github.com/platform-forge/platform-forge"
+Documentation = "https://github.com/dillon-barendt/platform-forge#readme"
+Issues = "https://github.com/dillon-barendt/platform-forge/issues"
+Source = "https://github.com/dillon-barendt/platform-forge"
 
 [tool.ruff]
 line-length = 100

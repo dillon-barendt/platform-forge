@@ -61,6 +61,7 @@ strict = true
 warn_unreachable = true
 warn_unused_ignores = true
 packages = ["platform_forge"]
+exclude = ["src/platform_forge/templates/cookiecutters"]
 
 [tool.pytest.ini_options]
 addopts = "-q"

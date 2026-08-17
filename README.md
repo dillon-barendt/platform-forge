@@ -21,6 +21,8 @@ help you build robust and scalable platforms.
 - **Extensible:** Create your own templates and plugins to customize Platform Forge to your specific needs.
 - **Built for Modern Python:** Leverages the latest Python features and best practices to help you build high-quality
   platforms.
+- **GitHub Governance:** Preview and upsert a small organization's teams, labels, topics, Roadmap project, and default
+  branch ruleset from one strict TOML file.
 
 ## Installation
 
@@ -40,6 +42,38 @@ platform-forge new gateway --project-name "My Awesome Platform"
 
 This will create a new project in a directory called `my-awesome-platform` with a default configuration. You can then
 customize the configuration to your specific needs.
+
+### GitHub organization quickstart
+
+Install and authenticate the GitHub CLI before using governance commands. A classic OAuth token needs `admin:org`,
+`project`, and repository access; an equivalent fine-grained token must be able to administer the organization and the
+selected repositories.
+
+```bash
+platform-forge github init-config \
+  --organization example-org \
+  --repository api \
+  --repository web
+
+# Read-only: validates access and shows create/update/unchanged operations.
+platform-forge github plan --config platform-forge.github.toml
+
+# Run only after reviewing the plan.
+platform-forge github apply --config platform-forge.github.toml --yes
+```
+
+Apply is upsert-only. It does not delete unrelated teams, memberships, labels, topics, projects, fields, or rulesets. If
+an operation fails, Platform Forge reports the completed mutation, the failure, and every later mutation it skipped;
+fix the access or policy problem and rerun the same command.
+
+To add protected-branch-compatible semantic releases to a Python repository:
+
+```bash
+platform-forge github init-release
+```
+
+This writes Release Please files into the local checkout for review. It does not edit a remote repository or publish a
+release. Add the repository to `[release].repositories`, apply the governance config, and commit the generated files.
 
 For more information on how to use Platform Forge, see
 the [documentation](https://dillon-barendt.github.io/platform-forge/).

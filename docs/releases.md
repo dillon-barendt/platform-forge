@@ -1,13 +1,28 @@
 # Release Process
 
-This document describes the release process for Platform Forge.
+Platform Forge uses Release Please with Conventional Commits. Direct release commits are not pushed through the
+default-branch ruleset.
 
-## Steps
+## Repository setup
 
-1. **Create a new release branch:** Create a new release branch from the `development` branch.
-2. **Update the version:** Update the version number in the `pyproject.toml` file.
-3. **Update the changelog:** Update the `changelog.md` file with the changes in the new release.
-4. **Create a new release on GitHub:** Create a new release on GitHub with the new version number and the changelog.
-5. **Merge the release branch:** Merge the release branch into the `main` branch.
-6. **Tag the release:** Tag the release with the new version number.
-7. **Publish the release:** Publish the release to PyPI.
+Run the initializer from a Python repository root:
+
+```bash
+platform-forge github init-release
+```
+
+Review and commit the generated workflow, manifest, configuration, and version annotation. Add the repository to the
+governance file's `[release].repositories` list and apply governance so GitHub Actions may open the release pull
+request. The workflow requests only its declared `contents`, `issues`, and `pull-requests` permissions.
+
+## Creating a release
+
+1. Merge changes to the configured release branch using Conventional Commit titles.
+2. `fix:` changes propose a patch; `feat:` changes propose a minor; a `!` or `BREAKING CHANGE` proposes a major.
+3. Release Please creates or updates one release pull request containing the version and changelog changes.
+4. Review and merge that pull request through the normal branch ruleset.
+5. Release Please creates the SemVer Git tag and GitHub Release from the merged commit.
+
+Platform Forge does not publish to PyPI, configure package-manager credentials, or bypass branch protection in this
+MVP. A failed release remains visible in GitHub Actions and can be rerun after correcting the repository or enterprise
+policy.

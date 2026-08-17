@@ -13,7 +13,9 @@ platform-forge github init-release
 
 Review and commit the generated workflow, manifest, configuration, and version annotation. Add the repository to the
 governance file's `[release].repositories` list and apply governance so GitHub Actions may open the release pull
-request. The workflow requests only its declared `contents`, `issues`, and `pull-requests` permissions.
+request. Apply enables selected-repository Actions access where needed, keeps the organization token default read-only,
+and opts only release repositories into pull-request creation. The workflow requests only its declared `contents`,
+`issues`, and `pull-requests` permissions.
 
 ## Creating a release
 

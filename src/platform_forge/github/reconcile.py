@@ -25,6 +25,7 @@ class RepositoryState:
     name: str
     labels: dict[str, LabelState] = field(default_factory=dict)
     topics: set[str] = field(default_factory=set)
+    actions_enabled: bool = True
     workflow_permissions: tuple[str, bool] = ("read", False)
 
 
@@ -64,6 +65,8 @@ class OrganizationSnapshot:
     teams: dict[str, TeamState] = field(default_factory=dict)
     project: ProjectState | None = None
     ruleset: RulesetState | None = None
+    rulesets_supported: bool = True
+    organization_workflow_permissions: tuple[str, bool] = ("read", True)
 
 
 @dataclass(frozen=True)
@@ -174,7 +177,18 @@ class GovernancePlanner:
         operations.extend(self._plan_repositories(repositories))
         operations.extend(self._plan_project(repositories))
         operations.append(self._plan_ruleset())
-        operations.extend(self._plan_workflow_permissions())
+        organization_policy = self._plan_organization_workflow_permissions()
+        if organization_policy is not None:
+            operations.append(organization_policy)
+        operations.extend(self._plan_actions_access())
+        operations.extend(
+            self._plan_workflow_permissions(
+                repositories,
+                force_update=(
+                    organization_policy is not None and organization_policy.action == "update"
+                ),
+            )
+        )
         return operations
 
     def _plan_teams(self, repositories: list[str]) -> list[PlannedOperation]:
@@ -340,6 +354,14 @@ class GovernancePlanner:
 
     def _plan_ruleset(self) -> PlannedOperation:
         desired = desired_ruleset_payload(self._config)
+        if not self._snapshot.rulesets_supported:
+            return PlannedOperation(
+                action="skipped",
+                resource="ruleset",
+                target=self._config.ruleset.name,
+                detail="organization rulesets require GitHub Team or Enterprise",
+                payload=desired,
+            )
         current = self._snapshot.ruleset
         if current is None:
             action: OperationAction = "create"
@@ -355,27 +377,78 @@ class GovernancePlanner:
             payload=desired,
         )
 
-    def _plan_workflow_permissions(self) -> list[PlannedOperation]:
+    def _plan_workflow_permissions(
+        self,
+        repositories: list[str],
+        *,
+        force_update: bool,
+    ) -> list[PlannedOperation]:
         operations: list[PlannedOperation] = []
-        for repository in self._config.release.repositories:
+        if not self._config.release.repositories:
+            return operations
+        release_repositories = set(self._config.release.repositories)
+        for repository in repositories:
             current = self._snapshot.repositories[repository].workflow_permissions
+            desired = ("read", repository in release_repositories)
             operations.append(
                 PlannedOperation(
-                    action="unchanged" if current == ("read", True) else "update",
+                    action=("unchanged" if not force_update and current == desired else "update"),
                     resource="workflow permissions",
                     target=repository,
                     detail=(
-                        "security-sensitive: keep default token read-only and allow Actions "
-                        "to create or approve pull requests"
+                        "security-sensitive: keep default token read-only and "
+                        + (
+                            "allow Actions to create or approve pull requests"
+                            if desired[1]
+                            else "prevent Actions from creating or approving pull requests"
+                        )
                     ),
                     payload={
                         "repository": repository,
                         "default_workflow_permissions": "read",
-                        "can_approve_pull_request_reviews": True,
+                        "can_approve_pull_request_reviews": desired[1],
                     },
                 )
             )
         return operations
+
+    def _plan_organization_workflow_permissions(self) -> PlannedOperation | None:
+        if not self._config.release.repositories:
+            return None
+        desired = ("read", True)
+        return PlannedOperation(
+            action=(
+                "unchanged"
+                if self._snapshot.organization_workflow_permissions == desired
+                else "update"
+            ),
+            resource="organization workflow permissions",
+            target=self._config.organization,
+            detail=(
+                "security-sensitive: keep the organization token default read-only and allow "
+                "release repositories to opt in to pull-request creation"
+            ),
+            payload={
+                "default_workflow_permissions": "read",
+                "can_approve_pull_request_reviews": True,
+            },
+        )
+
+    def _plan_actions_access(self) -> list[PlannedOperation]:
+        return [
+            PlannedOperation(
+                action=(
+                    "unchanged"
+                    if self._snapshot.repositories[repository].actions_enabled
+                    else "update"
+                ),
+                resource="actions access",
+                target=repository,
+                detail="security-sensitive: enable Actions for this release repository",
+                payload={"repository": repository},
+            )
+            for repository in self._config.release.repositories
+        ]
 
 
 class GovernanceApplier:
@@ -388,10 +461,10 @@ class GovernanceApplier:
         results: list[ApplyResult] = []
         failed = False
         for operation in operations:
-            if operation.action == "unchanged":
+            if operation.action in {"unchanged", "skipped"}:
                 results.append(
                     ApplyResult(
-                        action="unchanged",
+                        action=operation.action,
                         resource=operation.resource,
                         target=operation.target,
                         detail=operation.detail,

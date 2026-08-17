@@ -94,6 +94,12 @@ The starter includes three teams (`platform-admins`, `maintainers`, and `contrib
 Priority, and Size project fields. Extra existing labels, topics, project options, and memberships are preserved.
 
 Repositories in `[release].repositories` receive a security-sensitive repository setting: the default `GITHUB_TOKEN`
-permission stays `read`, while GitHub Actions is allowed to create or approve pull requests. This lets Release Please
-open a release PR; an enterprise policy may forbid the setting, in which case apply reports the policy conflict and
-stops.
+permission stays `read`, while GitHub Actions is allowed to create or approve pull requests. When organization Actions
+is limited to selected repositories, apply adds only the release repositories to that allowlist. GitHub requires the
+organization workflow policy to permit pull-request creation before a repository can opt in, so apply surfaces that
+organization-level change and explicitly keeps every selected non-release repository opted out. This lets Release
+Please open a release PR; an enterprise policy may forbid the setting, in which case apply reports the policy conflict
+and stops.
+
+Organization rulesets require GitHub Team or Enterprise. On an unsupported plan, `plan` and `apply` report the ruleset
+as `skipped` and continue with the remaining upserts; they never replace it with weaker repository settings silently.

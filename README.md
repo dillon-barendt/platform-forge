@@ -74,6 +74,8 @@ platform-forge github init-release
 
 This writes Release Please files into the local checkout for review. It does not edit a remote repository or publish a
 release. Add the repository to `[release].repositories`, apply the governance config, and commit the generated files.
+For release repositories, apply keeps the organization and repository token defaults read-only, enables Actions only
+where selected, and explicitly prevents non-release repositories from creating or approving pull requests.
 
 For more information on how to use Platform Forge, see
 the [documentation](https://dillon-barendt.github.io/platform-forge/).

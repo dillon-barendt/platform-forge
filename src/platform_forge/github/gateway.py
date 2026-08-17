@@ -55,6 +55,7 @@ class PreflightResult:
     account: str
     organization_role: str
     repositories: list[str]
+    rulesets_supported: bool = True
 
 
 class GitHubGateway:
@@ -69,6 +70,7 @@ class GitHubGateway:
         self._client = client or GhClient()
         self._executable_resolver = executable_resolver
         self.organization: str | None = None
+        self.rulesets_supported = True
 
     def preflight(self, config: GitHubGovernanceConfig) -> PreflightResult:
         """Verify tooling, identity, scopes, organization role, and repositories."""
@@ -104,6 +106,15 @@ class GitHubGateway:
 
         try:
             self._client.api(f"orgs/{config.organization}/rulesets")
+            self.rulesets_supported = True
+        except GitHubCommandError as exc:
+            if "upgrade to github team" not in str(exc).lower():
+                raise PreflightError(
+                    f"GitHub organization ruleset administration is unavailable: {exc}"
+                ) from exc
+            self.rulesets_supported = False
+
+        try:
             self._client.command_json(
                 [
                     "project",
@@ -128,6 +139,7 @@ class GitHubGateway:
             account=account,
             organization_role=role,
             repositories=repositories,
+            rulesets_supported=self.rulesets_supported,
         )
 
     @staticmethod
@@ -174,12 +186,21 @@ class GitHubGateway:
         }
         team_states = self._read_teams(config)
         project_state = self._read_project(config.project.title)
-        ruleset_state = self._read_ruleset(config.ruleset.name)
+        ruleset_state = self._read_ruleset(config.ruleset.name) if self.rulesets_supported else None
+        organization_workflow = cast(
+            dict[str, Any],
+            self._client.api(f"orgs/{config.organization}/actions/permissions/workflow"),
+        )
         return OrganizationSnapshot(
             repositories=repository_states,
             teams=team_states,
             project=project_state,
             ruleset=ruleset_state,
+            rulesets_supported=self.rulesets_supported,
+            organization_workflow_permissions=(
+                str(organization_workflow.get("default_workflow_permissions", "read")),
+                bool(organization_workflow.get("can_approve_pull_request_reviews", False)),
+            ),
         )
 
     def _read_repository(self, repository: str) -> RepositoryState:
@@ -199,10 +220,15 @@ class GitHubGateway:
             dict[str, Any],
             self._client.api(f"repos/{organization}/{repository}/actions/permissions/workflow"),
         )
+        actions_permissions = cast(
+            dict[str, Any],
+            self._client.api(f"repos/{organization}/{repository}/actions/permissions"),
+        )
         return RepositoryState(
             name=repository,
             labels=labels,
             topics={str(name) for name in topics_data.get("names", [])},
+            actions_enabled=bool(actions_permissions.get("enabled", False)),
             workflow_permissions=(
                 str(permissions.get("default_workflow_permissions", "read")),
                 bool(permissions.get("can_approve_pull_request_reviews", False)),
@@ -306,6 +332,8 @@ class GitHubGateway:
             "project field": self._execute_project_field,
             "project link": self._execute_project_link,
             "ruleset": self._execute_ruleset,
+            "organization workflow permissions": self._execute_organization_workflow_permissions,
+            "actions access": self._execute_actions_access,
             "workflow permissions": self._execute_workflow_permissions,
         }
         handler = handlers.get(operation.resource)
@@ -413,7 +441,16 @@ class GitHubGateway:
         organization = self._organization()
         number = self._project_number(str(operation.payload["project"]))
         options = [str(option) for option in operation.payload["options"]]
-        if operation.action == "create":
+        project = self._project_details(number)
+        field = next(
+            (
+                node
+                for node in project["fields"]["nodes"]
+                if node.get("name") == operation.payload["name"]
+            ),
+            None,
+        )
+        if operation.action == "create" and field is None:
             self._client.command_json(
                 [
                     "project",
@@ -432,12 +469,8 @@ class GitHubGateway:
                 ]
             )
             return
-        project = self._project_details(number)
-        field = next(
-            node
-            for node in project["fields"]["nodes"]
-            if node.get("name") == operation.payload["name"]
-        )
+        if field is None:
+            raise RuntimeError(f"project field was not found: {operation.payload['name']}")
         existing = {option["name"]: option for option in field.get("options", [])}
         option_inputs = [
             {
@@ -494,6 +527,40 @@ class GitHubGateway:
                     "can_approve_pull_request_reviews"
                 ],
             },
+        )
+
+    def _execute_organization_workflow_permissions(self, operation: PlannedOperation) -> None:
+        self._client.api(
+            f"orgs/{self._organization()}/actions/permissions/workflow",
+            method="PUT",
+            data={
+                "default_workflow_permissions": operation.payload["default_workflow_permissions"],
+                "can_approve_pull_request_reviews": operation.payload[
+                    "can_approve_pull_request_reviews"
+                ],
+            },
+        )
+
+    def _execute_actions_access(self, operation: PlannedOperation) -> None:
+        organization = self._organization()
+        repository = str(operation.payload["repository"])
+        policy = cast(dict[str, Any], self._client.api(f"orgs/{organization}/actions/permissions"))
+        enabled_repositories = str(policy.get("enabled_repositories", "all"))
+        if enabled_repositories == "selected":
+            repository_data = cast(
+                dict[str, Any], self._client.api(f"repos/{organization}/{repository}")
+            )
+            self._client.api(
+                f"orgs/{organization}/actions/permissions/repositories/{repository_data['id']}",
+                method="PUT",
+            )
+            return
+        if enabled_repositories == "none":
+            raise RuntimeError("organization policy disables GitHub Actions for all repositories")
+        self._client.api(
+            f"repos/{organization}/{repository}/actions/permissions",
+            method="PUT",
+            data={"enabled": True, "allowed_actions": "all"},
         )
 
     def _project_number(self, title: str) -> int:

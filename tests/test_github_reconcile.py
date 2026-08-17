@@ -158,6 +158,79 @@ def test_wildcard_plan_rejects_release_repository_that_was_not_resolved() -> Non
         GovernancePlanner(config, snapshot).build()
 
 
+def test_plan_skips_ruleset_when_organization_plan_does_not_support_it() -> None:
+    config = configured_governance()
+    snapshot = OrganizationSnapshot(
+        repositories={"api": RepositoryState(name="api")},
+        rulesets_supported=False,
+    )
+
+    operations = GovernancePlanner(config, snapshot).build()
+
+    ruleset = next(operation for operation in operations if operation.resource == "ruleset")
+    assert ruleset.action == "skipped"
+    assert "GitHub Team" in ruleset.detail
+
+
+def test_release_plan_enables_actions_before_workflow_permissions() -> None:
+    config = configured_governance()
+    snapshot = OrganizationSnapshot(
+        repositories={"api": RepositoryState(name="api", actions_enabled=False)},
+        rulesets_supported=False,
+    )
+
+    operations = GovernancePlanner(config, snapshot).build()
+
+    actions_index = next(
+        index
+        for index, operation in enumerate(operations)
+        if operation.resource == "actions access"
+    )
+    workflow_index = next(
+        index
+        for index, operation in enumerate(operations)
+        if operation.resource == "workflow permissions"
+    )
+    assert operations[actions_index].action == "update"
+    assert actions_index < workflow_index
+
+
+def test_org_workflow_change_asserts_non_release_repository_stays_restricted() -> None:
+    config = GitHubGovernanceConfig(
+        organization="example-org",
+        repositories=["api", "web"],
+        teams=[],
+        labels=[],
+        topics=[],
+        project={"fields": []},
+        release={"repositories": ["api"]},
+    )
+    snapshot = OrganizationSnapshot(
+        repositories={
+            "api": RepositoryState(name="api"),
+            "web": RepositoryState(name="web"),
+        },
+        organization_workflow_permissions=("read", False),
+        rulesets_supported=False,
+    )
+
+    operations = GovernancePlanner(config, snapshot).build()
+
+    org_permission = next(
+        operation
+        for operation in operations
+        if operation.resource == "organization workflow permissions"
+    )
+    web_permission = next(
+        operation
+        for operation in operations
+        if operation.resource == "workflow permissions" and operation.target == "web"
+    )
+    assert org_permission.action == "update"
+    assert web_permission.action == "update"
+    assert web_permission.payload["can_approve_pull_request_reviews"] is False
+
+
 class RecordingExecutor:
     def __init__(self, fail_target: str | None = None) -> None:
         self.fail_target = fail_target
@@ -172,6 +245,21 @@ class RecordingExecutor:
 
 def mutation_targets(results: Sequence[ApplyResult]) -> list[str]:
     return [result.target for result in results if result.action not in {"unchanged", "skipped"}]
+
+
+def test_apply_does_not_execute_preplanned_skipped_operation() -> None:
+    executor = RecordingExecutor()
+    operation = PlannedOperation(
+        action="skipped",
+        resource="ruleset",
+        target="Platform Forge default branch",
+        detail="organization rulesets require GitHub Team or Enterprise",
+    )
+
+    results = GovernanceApplier(executor).apply([operation])
+
+    assert results[0].action == "skipped"
+    assert executor.executed == []
 
 
 def test_apply_stops_after_failure_and_reports_skipped_mutations() -> None:
